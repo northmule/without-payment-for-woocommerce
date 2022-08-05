@@ -1,0 +1,11 @@
+# ignore deploy
+/.gitignore
+/.distignore
+/.phpcs.xml
+/composer.json
+/composer.lock
+/phpstan.neon
+/README.md
+/.github
+/tools
+/LICENSE
