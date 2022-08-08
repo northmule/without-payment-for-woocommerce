@@ -1,2 +1,7 @@
 # without-payment-for-woocommerce
-Payment stub plugin for WooCommerce. Allows you to skip the payment process.
+
+Payment gateway plugin for WooCommerce. Performs the role of a stub when there is no need to start the payment procedure.
+
+**Features of the plugin:** 
+1. After choosing the payment method, an order will be created. 
+2. The user will be redirected to the page you selected. 3. The order will be assigned the status you specified.

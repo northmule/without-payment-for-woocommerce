@@ -9,7 +9,6 @@ namespace Coderun\WithoutPaymentWoocommerce\Utils;
  */
 class Pages
 {
-    
     /**
      * Страницы сайта
      *
@@ -22,7 +21,7 @@ class Pages
         $wp_pages = get_pages('sort_column=menu_order');
         $pagesList = [];
         $pagesList[] = $title;
-        
+
         foreach ($wp_pages as $page) {
             $prefix = '';
             $has_parent = $page->post_parent;
@@ -33,11 +32,11 @@ class Pages
             }
             $pagesList[$page->ID] = $prefix . $page->post_title;
         }
-        
-        
+
+
         return $pagesList;
     }
-    
+
     /**
      * Доступные статусы WooCommerce для формы настроек
      *
@@ -55,7 +54,7 @@ class Pages
         }
         $select = [];
         $select[0] = $title;
-        
+
         return ($select + $statuses);
     }
 }

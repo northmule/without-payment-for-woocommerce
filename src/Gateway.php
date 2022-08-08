@@ -7,7 +7,6 @@ namespace Coderun\WithoutPaymentWoocommerce;
 use Coderun\WithoutPaymentWoocommerce\Exceptions\VariablesException;
 use Coderun\WithoutPaymentWoocommerce\Utils\Pages as PagesUtils;
 use WC_Logger;
-use WC_Order;
 use WC_Payment_Gateway;
 
 use function sprintf;
@@ -17,30 +16,27 @@ use function sprintf;
  */
 class Gateway extends WC_Payment_Gateway
 {
-    
+    public $id = 'coderun_without_payment_woocommerce';
     /**
      * @inheritdoc
      *
      * @var string
      */
     public $method_title = 'Gateway without payment';
-    
     /**
      * @inheritdoc
      *
      * @var string
      */
     public $method_description = 'The gateway is a plug to inform the customer at the payment stage that he will be contacted to confirm the order.';
-    
     /** @var WC_Logger */
     protected WC_Logger $logger;
-    
+
     /**
      * @param string $pluginUrlDir
      */
     public function __construct(string $pluginUrlDir)
     {
-        $this->id = 'coderun_without_payment_woocommerce';
         /** @phpstan-ignore-next-line */
         $this->icon = apply_filters('woocommerce_without_icon', $pluginUrlDir . '/public/without.png');
         $this->has_fields = false;
@@ -49,14 +45,16 @@ class Gateway extends WC_Payment_Gateway
         $this->title = $this->settings['title'];
         $this->description = $this->settings['description'];
         $this->logger = wc_get_logger();
-        
-        add_action(sprintf('woocommerce_receipt_%s',$this->id), [$this, 'receiptPage']);
+
+        add_action(sprintf('woocommerce_receipt_%s', $this->id), [$this, 'receiptPage']);
         add_action(sprintf('woocommerce_update_options_payment_gateways_%s', $this->id), [$this, 'process_admin_options']);
     }
-    
+
     /**
-     * Внешний вид страницы Платёжного шлюза
-     * */
+     * @inheritdoc
+     *
+     * @return void
+     */
     public function admin_options(): void
     {
         ?>
@@ -70,11 +68,13 @@ class Gateway extends WC_Payment_Gateway
         
         <?php
     }
-    
+
     /**
-     * Поля для HTML опций шлюза
+     * @inheritdoc
+     *
+     * @return void
      */
-    function init_form_fields(): void
+    public function init_form_fields(): void
     {
         $this->form_fields = [
             'enabled'         => [
@@ -101,12 +101,12 @@ class Gateway extends WC_Payment_Gateway
                 'label'   => __('Disable the order confirmation page. If the check mark is set - after choosing payment by this method, the buyer will immediately get to the page you selected in the "Redirect Page" option', 'coderun-without-payment-woocommerce'),
                 'default' => 'no',
             ],
-            'order_status' => [
-                'title' => __('The status to which the order should go', 'coderun-without-payment-woocommerce'),
-                'type' => 'select',
-                'options' => PagesUtils::listOfAvailableOrderStatuses('Выберите статус...'),
+            'order_status'    => [
+                'title'       => __('The status to which the order should go', 'coderun-without-payment-woocommerce'),
+                'type'        => 'select',
+                'options'     => PagesUtils::listOfAvailableOrderStatuses('Выберите статус...'),
                 'description' => __('This status will be assigned to the order upon completion of the buyer\'s actions', 'coderun-without-payment-woocommerce'),
-                'default' => ''
+                'default'     => '',
             ],
             'debug'           => [
                 'title'   => __('Logging mode', 'coderun-without-payment-woocommerce'),
@@ -122,8 +122,8 @@ class Gateway extends WC_Payment_Gateway
             ],
         ];
     }
-    
-    
+
+
     /**
      * Генерация кнопок на странице подтверждения заказа
      *
@@ -134,14 +134,25 @@ class Gateway extends WC_Payment_Gateway
     protected function generateForm(int $orderId): string
     {
         $order = wc_get_order($orderId);
-        
-        $action_adr = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
-        return
-            '<form action="' . esc_url($action_adr) . '" method="POST">' . "\n" .
-            '<input type="submit" class="button alt" name="coderun_without_payment_woocommerce_without_pay" value="' . __('Confirm', 'woocommerce') . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __('Refuse & Return to Cart', 'woocommerce') . '</a>' . "\n" .
-            '</form>';
+
+        $actionUrl = esc_url($_SERVER['REQUEST_URI']);
+        /** @phpstan-ignore-next-line  $url */
+        $url = $order->get_cancel_order_url();
+        if (!is_string($url)) {
+            $url = '';
+        }
+        return sprintf(
+            '<form action="%s" method="POST">
+        <input type="submit" class="button alt" name="coderun_without_payment_woocommerce_without_pay" value="%s" />
+        <a class="button cancel" href="%s">%s</a>
+        </form>',
+            $actionUrl,
+            __('Confirm', 'woocommerce'),
+            $url,
+            __('Refuse & Return to Cart', 'woocommerce')
+        );
     }
-    
+
     /**
      * @inheritDoc
      *
@@ -152,7 +163,7 @@ class Gateway extends WC_Payment_Gateway
     public function process_payment($order_id): array
     {
         $order = wc_get_order($order_id);
-        
+
         return [
             'result'   => 'success',
             'redirect' => add_query_arg(
@@ -162,7 +173,7 @@ class Gateway extends WC_Payment_Gateway
             ),
         ];
     }
-    
+
     /**
      * Страница подтверждения заказ
      *
@@ -180,21 +191,21 @@ class Gateway extends WC_Payment_Gateway
                 $this->updateStatus($order->get_id());
                 wp_redirect($action_adr);
             } else {
-                echo '<p>' . __('Thank you for the order, to confirm the order - click on the button below!', 'coderun-without-payment-woocommerce') . '</p>';
-                echo $this->generateForm($order->get_id()); //Кнопки и прочее
                 if (isset($_POST['coderun_without_payment_woocommerce_without_pay'])) {
                     WC()->cart->empty_cart();
-                    $action_adr = get_permalink($this->settings['without_success']);
-                    $this->updateStatus();
-                    wp_redirect($action_adr);
+                    $this->updateStatus($orderId);
+                    $url = get_permalink($this->settings['without_success']);
+                    wp_redirect($url);
+                } else {
+                    echo '<p>' . __('Thank you for the order, to confirm the order - click on the button below!', 'coderun-without-payment-woocommerce') . '</p>';
+                    echo $this->generateForm($order->get_id()); //Кнопки и прочее
                 }
             }
         } catch (VariablesException $exception) {
             $this->logger->critical($exception->getMessage(), $exception->getPrevious());
         }
-        
     }
-    
+
     /**
      * Обновление статуса заказа
      *
@@ -204,8 +215,8 @@ class Gateway extends WC_Payment_Gateway
      */
     protected function updateStatus(?int $orderId = null): void
     {
-        if ($orderId == null && !empty($_POST['order'])) {
-            $orderId = intval($_POST['order']);
+        if ($orderId == null && !empty($_GET['order'])) {
+            $orderId = intval($_GET['order']);
         }
         if ($orderId == null) {
             throw VariablesException::valueIsNotDefined('$orderId');

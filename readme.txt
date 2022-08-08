@@ -24,7 +24,7 @@ Payment gateway woocommeerce, without charge or obligation. Payment for the good
 
 * [Telegram Group @coderunphp](https://t.me/coderunphp)
 
-* [GitHub](https://github.com/northmule/buy-one-click-woocommerce)
+* [GitHub](https://github.com/northmule/without-payment-for-woocommerce)
 
 == Required Plugins ==
 * [WooCommerce](https://wordpress.org/plugins/woocommerce/)
@@ -50,6 +50,8 @@ This project supports the best IDE for development [JetBrains](https://www.jetbr
 4. Your order confirmation notification page.
 
 == Changelog ==
+= 1.3.1 =
+* Deleted unused code
 = 1.3.0 =
 * Full update of the plugin code base in accordance with PHP 7.4
 * For the plugin to work, its new configuration will be required
@@ -58,10 +60,10 @@ This project supports the best IDE for development [JetBrains](https://www.jetbr
 = 1.2.1 =
 * fix empty cart order
 = 1.2 =
-* Теперь нет проверки валюты магазина
-* У всех созданных заказов статус «В обработке»
+* Now there is no checking the store's currency
+* All created orders have the status "In processing"
 = 1.1 =
-* Добавлены дополнительные опции
+* Added additional options
 = 1.0 =
-* Релиз
+* Release
 
