@@ -7,7 +7,7 @@ Tested up to: 6.1
 Stable tag: 5.7
 Requires PHP: 7.4
 WC requires at least: 4.7
-WC tested up to: 6.1
+WC tested up to: 8.2
 License: GPLv2 or later
 License URI: http://www.apache.org/licenses/
 
@@ -50,6 +50,8 @@ This project supports the best IDE for development [JetBrains](https://www.jetbr
 4. Your order confirmation notification page.
 
 == Changelog ==
+= 1.3.2 =
+* add support WooCommerce HPOS
 = 1.3.1 =
 * Deleted unused code
 = 1.3.0 =

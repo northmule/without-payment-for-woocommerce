@@ -3,18 +3,18 @@
   Plugin Name: Without payment woocommerce
   Plugin URI: https://github.com/northmule/without-payment-for-woocommerce
   Description: The payment gateway is a stub. Allows you to make a purchase by notifying the buyer that the manager will contact him later.
-  Version: 1.3.1
+  Version: 1.3.2
   Author: Djo
   Author URI: https://habr.com/ru/users/northmule/
   WC requires at least: 5.2
-  WC tested up to: 5.9
+  WC tested up to: 8.2
   Requires at least: 5.1
   Tested up to: 5.9
   Text Domain: coderun-without-payment-woocommerce
   Domain Path: /languages
  */
 
-/*  Copyright 2022  Djo  (email: izm@zixn.ru)
+/*  Copyright 2023  Djo  (email: izm@zixn.ru)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -43,3 +43,11 @@ add_filter('woocommerce_payment_gateways',
         return $methods;
     }
 );
+
+add_action( 'before_woocommerce_init', function() {
+    if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+            'custom_order_tables', __FILE__, true
+        );
+    }
+});
